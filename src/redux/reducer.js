@@ -5,11 +5,11 @@ const initialState = {
 
 const reducer = (state = initialState, action) => {
   if (action.type === 'UPDATE_CONTRAST') {
-    return { ...state, contrast: state.contrast + action.payload.contrast };
+    return { ...state, contrast: action.payload.contrast };
   }
 
   if (action.type === 'UPDATE_BRIGHTNESS') {
-    return { ...state, brightness: state.brightness + action.payload.brightness };
+    return { ...state, brightness: action.payload.brightness };
   }
 
   return state;

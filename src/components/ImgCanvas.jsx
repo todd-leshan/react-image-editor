@@ -1,7 +1,11 @@
 import React from 'react';
 import get from 'lodash/get';
+import PropTypes from 'prop-types';
 
 const ALLOWED_IMAGE_TYPE = ['image/jpeg', 'image/png'];
+
+// eslint-disable-next-line max-len
+const applyFiltersOnPixelColor = (val, contrastFactor, brightness) => contrastFactor * (val - 128) + 128 + brightness;
 
 class ImgCanvas extends React.Component {
   constructor(props) {
@@ -12,6 +16,9 @@ class ImgCanvas extends React.Component {
     this.state = {
       imgName: '',
     };
+
+    this.img = document.createElement('img');
+    this.originalImageData = null;
   }
 
   componentDidMount() {
@@ -19,31 +26,68 @@ class ImgCanvas extends React.Component {
     this.ctx = this.canvas.getContext('2d');
   }
 
+  componentDidUpdate(prevProps) {
+    const { brightness, contrast } = this.props;
+    if (prevProps.brightness !== brightness || prevProps.contrast !== contrast) {
+      this.applyFilters(contrast, brightness);
+    }
+  }
+
   handleUploadImg(event) {
     const input = event.target;
     const file = get(input, 'files[0]');
-    const img = document.createElement('img');
+    const { resetFilters } = this.props;
 
     if (!file || !file.type || !ALLOWED_IMAGE_TYPE.includes(file.type)) {
       return;
     }
 
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    resetFilters();
+    this.originalImageData = null;
+
     const reader = new FileReader();
-    reader.onload = (e) => {
-      img.src = e.target.result;
+    reader.onloadend = (e) => {
+      this.img.src = e.target.result;
+
+      this.img.onload = () => {
+        this.setState({
+          imgName: file.name,
+        });
+        this.canvas.width = this.img.width;
+        this.canvas.height = this.img.height;
+        this.ctx.drawImage(this.img, 0, 0, this.img.width, this.img.height);
+        const imageDataObj = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+        this.originalImageData = [...imageDataObj.data];
+      };
     };
     reader.readAsDataURL(file);
+  }
 
-    img.onload = () => {
-      this.setState({
-        imgName: file.name,
-      });
+  applyFilters(contrast, brightness) {
+    if (this.originalImageData === null) {
+      return;
+    }
 
-      this.canvas.width = img.width;
-      this.canvas.height = img.height;
+    const data = [...this.originalImageData];
+    const contrastScaled = contrast * 2.55;
+    const brightnessScaled = brightness * 2.55;
+    const factor = (259 * (contrastScaled + 255)) / (255 * (259 - contrastScaled));
 
-      this.ctx.drawImage(img, 0, 0, img.width, img.height);
-    };
+    for (let i = 0; i < data.length; i += 4) {
+      data[i] = applyFiltersOnPixelColor(data[i], factor, brightnessScaled);
+      data[i + 1] = applyFiltersOnPixelColor(data[i + 1], factor, brightnessScaled);
+      data[i + 2] = applyFiltersOnPixelColor(data[i + 2], factor, brightnessScaled);
+    }
+
+    const newImageData = new ImageData(
+      new Uint8ClampedArray(data),
+      this.canvas.width,
+      this.canvas.height,
+    );
+
+    // return newImageData;
+    this.ctx.putImageData(newImageData, 0, 0);
   }
 
   render() {
@@ -73,5 +117,11 @@ class ImgCanvas extends React.Component {
     );
   }
 }
+
+ImgCanvas.propTypes = {
+  brightness: PropTypes.number.isRequired,
+  contrast: PropTypes.number.isRequired,
+  resetFilters: PropTypes.func.isRequired,
+};
 
 export default ImgCanvas;

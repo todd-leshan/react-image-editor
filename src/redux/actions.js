@@ -1,13 +1,13 @@
-export const updateContrast = ({ contrast }) => ({
+export const updateContrast = ({ rangeValue }) => ({
   type: 'UPDATE_CONTRAST',
   payload: {
-    contrast,
+    contrast: rangeValue,
   },
 });
 
-export const updateBrightness = ({ brightness }) => ({
+export const updateBrightness = ({ rangeValue }) => ({
   type: 'UPDATE_BRIGHTNESS',
   payload: {
-    brightness,
+    brightness: rangeValue,
   },
 });
