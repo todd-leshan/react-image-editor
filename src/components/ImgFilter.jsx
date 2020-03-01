@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import debounce from 'lodash/debounce';
 
-const SLIDER_DEBOUNCE_TIMEOUT = 1;
+const SLIDER_DEBOUNCE_TIMEOUT = 5;
 const SLIDER_RANGE_SIZE = 200;
 const SLIDER_RANGE_OFFSET = SLIDER_RANGE_SIZE / 2;
 
@@ -31,11 +31,10 @@ class ImgFilter extends React.Component {
 
   render() {
     const {
-      name, description, themeClass, rangeValue,
+      name, description, themeClass, rangeValue, isDisabled,
     } = this.props;
     const { backgroundSize } = this.state;
     const filerClasses = `container--filter ${themeClass}`;
-
     return (
       <div className={filerClasses}>
         <h3 className="filter-name">{name}</h3>
@@ -47,6 +46,7 @@ class ImgFilter extends React.Component {
             value={rangeValue}
             style={{ backgroundSize: `${backgroundSize}` }}
             onChange={this.handleChange}
+            disabled={isDisabled ? 'disabled' : ''}
           />
         </div>
         <span className="filter-desp">{description}</span>
@@ -61,6 +61,7 @@ ImgFilter.propTypes = {
   themeClass: PropTypes.string.isRequired,
   rangeValue: PropTypes.number.isRequired,
   onRangeSliderChange: PropTypes.func.isRequired,
+  isDisabled: PropTypes.bool.isRequired,
 };
 
 export default ImgFilter;

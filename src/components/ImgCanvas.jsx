@@ -36,7 +36,7 @@ class ImgCanvas extends React.Component {
   handleUploadImg(event) {
     const input = event.target;
     const file = get(input, 'files[0]');
-    const { resetFilters } = this.props;
+    const { resetFilters, onImgLoaded } = this.props;
 
     if (!file || !file.type || !ALLOWED_IMAGE_TYPE.includes(file.type)) {
       return;
@@ -59,6 +59,7 @@ class ImgCanvas extends React.Component {
         this.ctx.drawImage(this.img, 0, 0, this.img.width, this.img.height);
         const imageDataObj = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
         this.originalImageData = [...imageDataObj.data];
+        onImgLoaded();
       };
     };
     reader.readAsDataURL(file);
@@ -86,7 +87,6 @@ class ImgCanvas extends React.Component {
       this.canvas.height,
     );
 
-    // return newImageData;
     this.ctx.putImageData(newImageData, 0, 0);
   }
 
@@ -122,6 +122,7 @@ ImgCanvas.propTypes = {
   brightness: PropTypes.number.isRequired,
   contrast: PropTypes.number.isRequired,
   resetFilters: PropTypes.func.isRequired,
+  onImgLoaded: PropTypes.func.isRequired,
 };
 
 export default ImgCanvas;
